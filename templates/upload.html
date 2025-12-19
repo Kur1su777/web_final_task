@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}文档阅读助手 - 上传与整理{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div>
+        <h1 class="page-title">文档阅读助手</h1>
+        <p class="page-subtitle">拖拽或上传任意文档，立即开启 AI 解析、总结与问答的阅读体验。</p>
+    </div>
+    <div class="header-actions">
+        <button class="button secondary" id="open-history">
+            <i class="fa-regular fa-clock"></i>
+            最近阅读
+        </button>
+    </div>
+</section>
+
+<section class="upload-panels">
+    <div class="panel gradient-border upload-panel">
+        <div class="upload-hero">
+            <div class="badge"><i class="fa-solid fa-wand-magic"></i> 阅读体验全新升级</div>
+            <h2>拖拽文件到此处</h2>
+            <p class="muted">支持 PDF / DOCX / PPTX / 图片 / TXT 等主流格式，单个文件不超过 64MB。</p>
+        </div>
+        <div class="dropzone" id="dropzone">
+            <div class="dropzone-wave"></div>
+            <div class="dropzone-content">
+                <i class="fa-regular fa-cloud-arrow-up"></i>
+                <p>将文件拖入 / 点击选择</p>
+                <span class="hint">AI 将自动完成解析、总结与问答</span>
+                <input type="file" id="file-input" hidden>
+            </div>
+        </div>
+        <div class="upload-actions">
+            <button class="button" id="browse-files"><i class="fa-regular fa-folder-open"></i> 选择本地文件</button>
+            <button class="button secondary" id="paste-link"><i class="fa-regular fa-link"></i> 粘贴链接</button>
+            <button class="button secondary" id="open-sample"><i class="fa-regular fa-sparkles"></i> 浏览示例</button>
+        </div>
+    </div>
+
+    <div class="panel recent-panel">
+        <div class="recent-header">
+            <div>
+                <h3>最近阅读</h3>
+                <p class="muted">查看最近访问的文档，快速回到上次阅读进度。</p>
+            </div>
+            <div class="recent-actions">
+                <button class="button secondary" id="clear-history">
+                    <i class="fa-regular fa-trash-can"></i>
+                    清空记录
+                </button>
+            </div>
+        </div>
+        <div class="recent-list" id="recent-list">
+            {% if documents %}
+                {% for doc in documents %}
+                <article class="recent-item" data-id="{{ doc.id }}">
+                    <div class="recent-icon">
+                        <i class="fa-regular fa-file-lines"></i>
+                    </div>
+                    <div class="recent-meta">
+                        <div class="recent-title">{{ doc.original_name }}</div>
+                        <div class="recent-sub">
+                            <span><i class="fa-regular fa-clock"></i> {{ doc.uploaded_at|replace("T", " " )|slice(0,16) }}</span>
+                            <span><i class="fa-regular fa-database"></i> {{ (doc.size / 1024)|round(1) }} KB</span>
+                        </div>
+                    </div>
+                    <div class="recent-actions-inline">
+                        <button class="recent-open" title="打开" aria-label="打开">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button class="recent-delete" title="删除" aria-label="删除">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </article>
+                {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <i class="fa-regular fa-box-open"></i>
+                <p>暂无上传记录，立即体验智能阅读吧！</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="modal" id="link-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>通过链接导入</h3>
+            <button class="modal-close" data-close><i class="fa-regular fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <label class="field">
+                <span>文档链接</span>
+                <input type="url" id="link-input" placeholder="https://example.com/document.pdf">
+            </label>
+            <p class="muted small">当前版本暂不支持直接抓取，将在后续版本开放。</p>
+        </div>
+        <div class="modal-footer">
+            <button class="button secondary" data-close>稍后上传</button>
+            <button class="button disabled" disabled>即将上线</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+{% endblock %}

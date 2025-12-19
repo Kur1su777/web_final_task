@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.original_name }} - 文档阅读助手{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reader.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="reader-header">
+    <div class="reader-title">
+        <div class="pill"><i class="fa-regular fa-file-lines"></i> 文档阅读</div>
+        <h1>{{ document.original_name }}</h1>
+        <div class="meta">
+            <span><i class="fa-regular fa-clock"></i> {{ document.uploaded_at|replace("T", " " )|slice(0, 16) }}</span>
+            <span><i class="fa-regular fa-database"></i> {{ (document.size / 1024)|round(1) }} KB</span>
+        </div>
+    </div>
+    <div class="reader-actions">
+        <button class="button secondary" id="toggle-ai"><i class="fa-regular fa-comments"></i> AI 提问</button>
+        <a class="button secondary" href="{{ url_for('uploaded_file', filename=document.filename) }}" download>
+            <i class="fa-regular fa-download"></i> 下载原文件
+        </a>
+        <a class="button secondary" href="{{ url_for('index') }}"><i class="fa-regular fa-arrow-left"></i> 返回上传</a>
+    </div>
+</div>
+
+<div class="reader-layout" id="reader-layout">
+    <section class="reader-pane ai-pane" id="ai-pane">
+        <div class="pane-header">
+            <h3>AI 提问</h3>
+            <p class="muted">AI 将基于文档内容实时回答你的问题。</p>
+        </div>
+        <div class="qa-chat" id="qa-chat"></div>
+        <form class="qa-form" id="qa-form">
+            <input type="text" id="qa-input" placeholder="输入问题，回车或点击提问">
+            <button type="submit" class="button"><i class="fa-regular fa-paper-plane"></i> 提问</button>
+        </form>
+    </section>
+
+    <section class="reader-pane viewer-pane{% if not show_thumbnails %} no-thumbs{% endif %}">
+        {% if show_thumbnails %}
+        <div class="thumbnail-bar">
+            {% for marker in page_markers %}
+            <button class="thumb {% if loop.first %}active{% endif %}" data-index="{{ marker.index }}">
+                <span>{{ loop.index }}</span>
+            </button>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="viewer-canvas">
+            {% if preview_type == "pdf" %}
+            <object id="doc-viewer" data="{{ url_for('uploaded_file', filename=document.filename) }}#toolbar=0" type="application/pdf">
+                <p>当前浏览器暂不支持内嵌 PDF，请点击下载查看。</p>
+            </object>
+            {% elif preview_type == "image" %}
+            <div class="image-viewer">
+                <img src="{{ url_for('uploaded_file', filename=document.filename) }}" alt="{{ document.original_name }}">
+            </div>
+            {% else %}
+            <div class="text-viewer">
+                <pre>{{ preview_text }}</pre>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="reader-pane insight-pane">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="category">智能分类</button>
+            <button class="tab-button" data-tab="summary">全文摘要</button>
+            <button class="tab-button" data-tab="explanation">文档解读</button>
+        </div>
+        <div class="tab-content" id="analysis-panel">
+            <div class="loading">
+                <span class="spinner"></span>
+                正在召唤 AI 解读...
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.__DOC_ID__ = "{{ document.id }}";
+</script>
+<script src="{{ url_for('static', filename='js/reader.js') }}"></script>
+{% endblock %}

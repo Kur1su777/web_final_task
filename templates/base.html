@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}文档阅读助手 · 智能解析体验{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="background-layer"></div>
+    <header class="global-header">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-book-open-reader"></i>
+            </div>
+            <div class="brand-meta">
+                <span class="product">DocReader 2.0</span>
+                <span class="tagline">文档阅读助手 · 上传即理解</span>
+            </div>
+        </div>
+        <nav class="header-actions">
+            <a href="{{ url_for('index') }}" class="header-link {% if request.endpoint == 'index' %}active{% endif %}">
+                <i class="fa-regular fa-cloud-arrow-up"></i>
+                上传中心
+            </a>
+            <span class="header-chip">
+                <i class="fa-solid fa-bolt"></i>
+                AI 引擎 · DashScope
+            </span>
+        </nav>
+    </header>
+    <main class="main-container">
+        {% block content %}{% endblock %}
+    </main>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

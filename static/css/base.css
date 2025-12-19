@@ -1,0 +1,297 @@
+:root {
+    --bg-start: #eef3ff;
+    --bg-end: #f8fbff;
+    --text-primary: #1f2438;
+    --text-secondary: #5a6387;
+    --panel-bg: #ffffff;
+    --panel-border: rgba(19, 60, 128, 0.08);
+    --shadow: 0 18px 36px rgba(31, 36, 56, 0.12);
+    --primary: #5b8def;
+    --primary-soft: rgba(91, 141, 239, 0.16);
+    --accent: #43c4ff;
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --transition: 0.25s cubic-bezier(0.43, 0.195, 0.02, 1);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(160deg, var(--bg-start) 0%, var(--bg-end) 100%);
+    color: var(--text-primary);
+}
+
+.background-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 10% 20%, rgba(91, 141, 239, 0.18), transparent 55%),
+                radial-gradient(circle at 90% 10%, rgba(67, 196, 255, 0.18), transparent 52%);
+    z-index: -1;
+}
+
+.global-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 60px 12px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.brand-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(91, 141, 239, 0.4), rgba(67, 196, 255, 0.55));
+    box-shadow: 0 16px 28px rgba(91, 141, 239, 0.3);
+    color: #fff;
+    font-size: 22px;
+}
+
+.brand-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.product {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.tagline {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.header-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    background: rgba(91, 141, 239, 0.15);
+    transition: var(--transition);
+    font-size: 14px;
+}
+
+.header-link i {
+    font-size: 16px;
+}
+
+.header-link:hover,
+.header-link.active {
+    color: #ffffff;
+    background: linear-gradient(120deg, var(--primary) 0%, var(--accent) 100%);
+    box-shadow: 0 16px 26px rgba(91, 141, 239, 0.25);
+}
+
+.header-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(31, 36, 56, 0.08);
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.main-container {
+    padding: 28px 60px 60px;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-top: 8px;
+}
+
+.panel {
+    background: var(--panel-bg);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--panel-border);
+    box-shadow: var(--shadow);
+    padding: 32px;
+}
+
+.muted {
+    color: var(--text-secondary);
+}
+
+.gradient-border {
+    border: 1px solid rgba(91, 141, 239, 0.28);
+    background-image: linear-gradient(135deg, rgba(91, 141, 239, 0.1), rgba(67, 196, 255, 0.08));
+}
+
+.pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--primary);
+    background: rgba(91, 141, 239, 0.12);
+}
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: var(--transition);
+    color: #ffffff;
+    background: linear-gradient(120deg, var(--primary) 0%, var(--accent) 100%);
+    box-shadow: 0 16px 30px rgba(91, 141, 239, 0.24);
+}
+
+.button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 36px rgba(91, 141, 239, 0.26);
+}
+
+.button.secondary {
+    background: rgba(91, 141, 239, 0.12);
+    color: var(--primary);
+    box-shadow: none;
+}
+
+.button.secondary:hover,
+.button.active {
+    background: rgba(91, 141, 239, 0.16);
+    color: var(--primary);
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.tab-button {
+    flex: 1;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-button.active {
+    color: #ffffff;
+    background: linear-gradient(120deg, var(--primary) 0%, var(--accent) 100%);
+    box-shadow: 0 12px 24px rgba(91, 141, 239, 0.24);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 18px;
+    color: rgba(91, 141, 239, 0.35);
+}
+
+.toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: rgba(31, 36, 56, 0.9);
+    color: #fff;
+    padding: 14px 20px;
+    border-radius: 14px;
+    box-shadow: 0 18px 36px rgba(31, 36, 56, 0.25);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 999;
+}
+
+.toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(91, 141, 239, 0.35);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+@media (max-width: 1024px) {
+    .global-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    .main-container {
+        padding: 24px 24px 48px;
+    }
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+}
