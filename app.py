@@ -135,7 +135,11 @@ def api_clear_documents():
 def api_document_analysis(doc_id):
     document, documents = get_document_or_404(doc_id)
 
-    if not document.get("analysis"):
+    analysis_payload = document.get("analysis") or {}
+    required_keys = {"summary", "deep_read", "translation", "mindmap"}
+    needs_refresh = not analysis_payload or not required_keys.issubset(analysis_payload.keys())
+
+    if needs_refresh:
         file_path = Path(document["filepath"])
         preview_text = extract_preview_text(file_path)
         if not preview_text:
@@ -162,11 +166,24 @@ def api_document_ask(doc_id):
     document, _ = get_document_or_404(doc_id)
     file_path = Path(document["filepath"])
     preview_text = extract_preview_text(file_path)
-    answer = ai_client.ask_about_document(
-        question=question,
-        filename=document["original_name"],
-        document_excerpt=preview_text,
-    )
+    compare_id = (payload.get("compare_doc_id") or "").strip()
+    if compare_id and compare_id != doc_id:
+        compare_doc, _ = get_document_or_404(compare_id)
+        compare_path = Path(compare_doc["filepath"])
+        compare_text = extract_preview_text(compare_path)
+        answer = ai_client.ask_about_documents(
+            question=question,
+            primary_filename=document["original_name"],
+            primary_excerpt=preview_text,
+            secondary_filename=compare_doc["original_name"],
+            secondary_excerpt=compare_text,
+        )
+    else:
+        answer = ai_client.ask_about_document(
+            question=question,
+            filename=document["original_name"],
+            document_excerpt=preview_text,
+        )
     return jsonify({"success": True, "answer": answer})
 
 

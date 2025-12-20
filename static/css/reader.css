@@ -2,7 +2,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .reader-title h1 {
@@ -31,17 +31,65 @@
 
 .reader-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
-    gap: 24px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 16px;
     transition: grid-template-columns 0.3s ease;
 }
 
 .reader-layout.with-ai {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .reader-layout:not(.with-ai) .ai-pane {
     display: none;
+}
+
+.reader-layout.compare-mode {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+        "viewer compare"
+        "insight compare-insight";
+}
+
+.reader-layout.compare-mode .viewer-pane {
+    grid-area: viewer;
+}
+
+.reader-layout.compare-mode .compare-pane {
+    display: flex;
+    grid-area: compare;
+}
+
+.reader-layout.compare-mode.with-ai {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+        "viewer compare"
+        "insight compare-insight"
+        "ai ai";
+}
+
+.reader-layout.compare-mode .insight-pane {
+    grid-area: insight;
+}
+
+.reader-layout.compare-mode .compare-insight-pane {
+    display: flex;
+    grid-area: compare-insight;
+}
+
+.reader-layout.compare-mode .insight-pane,
+.reader-layout.compare-mode .compare-insight-pane {
+    height: auto;
+    min-height: 260px;
+}
+
+.reader-layout.compare-mode.with-ai .ai-pane {
+    display: flex;
+    grid-area: ai;
+    height: auto;
+    min-height: 320px;
+    width: min(100%, 980px);
+    justify-self: center;
 }
 
 .reader-pane {
@@ -51,8 +99,14 @@
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    min-height: calc(100vh - 220px);
+    height: calc(100vh - 120px);
+    min-height: calc(100vh - 120px);
     overflow: hidden;
+}
+
+.main-container {
+    padding-left: 40px;
+    padding-right: 40px;
 }
 
 .ai-pane {
@@ -66,6 +120,17 @@
 
 .ai-pane .pane-header p {
     margin: 0;
+}
+
+.compare-insight-pane .pane-header h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+}
+
+.compare-insight-pane .pane-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
 }
 
 .qa-chat {
@@ -117,6 +182,85 @@
     display: grid;
     grid-template-columns: 72px 1fr;
     gap: 0;
+}
+
+.reader-layout.with-ai .viewer-pane {
+    grid-template-columns: 1fr;
+}
+
+.reader-layout.with-ai .thumbnail-bar {
+    display: none;
+}
+
+.compare-pane {
+    display: none;
+    padding: 0;
+    gap: 12px;
+    flex-direction: column;
+    position: relative;
+    overflow: visible;
+}
+
+.compare-insight-pane {
+    display: none;
+    padding: 24px;
+    gap: 12px;
+    flex-direction: column;
+}
+
+.compare-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: absolute;
+    top: -46px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    padding: 0 6px;
+}
+
+.compare-title {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+#compare-select {
+    min-width: 200px;
+    border-radius: 999px;
+    border: 1px solid rgba(91, 141, 239, 0.2);
+    padding: 8px 14px;
+    background: #f7f9ff;
+    color: var(--text-primary);
+}
+
+.compare-canvas {
+    flex: 1;
+    border-radius: 18px;
+    border: 1px solid rgba(91, 141, 239, 0.18);
+    background: #fff;
+    padding: 0;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compare-canvas iframe,
+.compare-canvas img {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.compare-text {
+    width: 100%;
+    white-space: pre-wrap;
+    line-height: 1.7;
+    font-size: 14px;
+    color: var(--text-primary);
+    padding: 16px;
 }
 
 .viewer-pane.no-thumbs {
@@ -178,6 +322,8 @@
     background: #fff;
 }
 
+/* pdf.js viewer styles removed; revert to native browser viewer */
+
 .image-viewer {
     width: 100%;
     height: 100%;
@@ -221,7 +367,7 @@
 
 .tabs {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 10px;
     padding: 4px;
     border-radius: 999px;
@@ -238,7 +384,7 @@
     line-height: 1.7;
     color: var(--text-primary);
     font-size: 14px;
-    white-space: pre-line;
+    white-space: pre-wrap;
 }
 
 .tab-content h4 {
@@ -275,6 +421,7 @@
     }
 
     .reader-pane {
+        height: auto;
         min-height: auto;
     }
 

@@ -18,6 +18,7 @@
     </div>
     <div class="reader-actions">
         <button class="button secondary" id="toggle-ai"><i class="fa-regular fa-comments"></i> AI 提问</button>
+        <button class="button secondary" id="toggle-compare"><i class="fa-regular fa-copy"></i> 文章对比</button>
         <a class="button secondary" href="{{ url_for('uploaded_file', filename=document.filename) }}" download>
             <i class="fa-regular fa-download"></i> 下载原文件
         </a>
@@ -26,20 +27,8 @@
 </div>
 
 <div class="reader-layout" id="reader-layout">
-    <section class="reader-pane ai-pane" id="ai-pane">
-        <div class="pane-header">
-            <h3>AI 提问</h3>
-            <p class="muted">AI 将基于文档内容实时回答你的问题。</p>
-        </div>
-        <div class="qa-chat" id="qa-chat"></div>
-        <form class="qa-form" id="qa-form">
-            <input type="text" id="qa-input" placeholder="输入问题，回车或点击提问">
-            <button type="submit" class="button"><i class="fa-regular fa-paper-plane"></i> 提问</button>
-        </form>
-    </section>
-
-    <section class="reader-pane viewer-pane{% if not show_thumbnails %} no-thumbs{% endif %}">
-        {% if show_thumbnails %}
+    <section class="reader-pane viewer-pane{% if not show_thumbnails or preview_type == 'pdf' %} no-thumbs{% endif %}">
+        {% if show_thumbnails and preview_type != "pdf" %}
         <div class="thumbnail-bar">
             {% for marker in page_markers %}
             <button class="thumb {% if loop.first %}active{% endif %}" data-index="{{ marker.index }}">
@@ -50,9 +39,12 @@
         {% endif %}
         <div class="viewer-canvas">
             {% if preview_type == "pdf" %}
-            <object id="doc-viewer" data="{{ url_for('uploaded_file', filename=document.filename) }}#toolbar=0" type="application/pdf">
-                <p>当前浏览器暂不支持内嵌 PDF，请点击下载查看。</p>
-            </object>
+            <iframe
+                id="doc-viewer"
+                data-base="{{ url_for('uploaded_file', filename=document.filename) }}"
+                src="{{ url_for('uploaded_file', filename=document.filename) }}#toolbar=1&navpanes=1&pagemode=bookmarks"
+                title="{{ document.original_name }}"
+            ></iframe>
             {% elif preview_type == "image" %}
             <div class="image-viewer">
                 <img src="{{ url_for('uploaded_file', filename=document.filename) }}" alt="{{ document.original_name }}">
@@ -67,9 +59,10 @@
 
     <section class="reader-pane insight-pane">
         <div class="tabs">
-            <button class="tab-button active" data-tab="category">智能分类</button>
-            <button class="tab-button" data-tab="summary">全文摘要</button>
-            <button class="tab-button" data-tab="explanation">文档解读</button>
+            <button class="tab-button active" data-tab="summary">全文总结</button>
+            <button class="tab-button" data-tab="deep_read">文章精读</button>
+            <button class="tab-button" data-tab="translation">文章翻译</button>
+            <button class="tab-button" data-tab="mindmap">思维导图</button>
         </div>
         <div class="tab-content" id="analysis-panel">
             <div class="loading">
@@ -77,6 +70,49 @@
                 正在召唤 AI 解读...
             </div>
         </div>
+    </section>
+
+    <section class="reader-pane compare-pane" id="compare-pane">
+        <div class="compare-header">
+            <div class="compare-title">对比文档</div>
+            <select id="compare-select">
+                <option value="">选择对比文档</option>
+            </select>
+        </div>
+        <div class="compare-canvas" id="compare-canvas">
+            <div class="empty-state">
+                <i class="fa-regular fa-file-lines"></i>
+                <p>请选择右侧文档以开始对比</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="reader-pane compare-insight-pane" id="compare-insight-pane">
+        <div class="pane-header">
+            <h3>对比文档解读</h3>
+            <p class="muted">基于右侧文档生成结构化解读。</p>
+        </div>
+        <div class="tabs">
+            <button class="tab-button active" data-tab="summary">全文总结</button>
+            <button class="tab-button" data-tab="deep_read">文章精读</button>
+            <button class="tab-button" data-tab="translation">文章翻译</button>
+            <button class="tab-button" data-tab="mindmap">思维导图</button>
+        </div>
+        <div class="tab-content" id="compare-analysis-panel">
+            <p class="muted">请选择右侧文档以开始对比</p>
+        </div>
+    </section>
+
+    <section class="reader-pane ai-pane" id="ai-pane">
+        <div class="pane-header">
+            <h3>AI 提问</h3>
+            <p class="muted">AI 将基于文档内容实时回答你的问题。</p>
+        </div>
+        <div class="qa-chat" id="qa-chat"></div>
+        <form class="qa-form" id="qa-form">
+            <input type="text" id="qa-input" placeholder="输入问题，回车或点击提问">
+            <button type="submit" class="button"><i class="fa-regular fa-paper-plane"></i> 提问</button>
+        </form>
     </section>
 </div>
 {% endblock %}

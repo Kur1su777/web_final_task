@@ -36,6 +36,13 @@ if (dropzone) {
             uploadFile(files[0]);
         }
     });
+
+    dropzone.addEventListener('click', event => {
+        if (event.target.closest('input')) return;
+        if (fileInput) {
+            fileInput.click();
+        }
+    });
 }
 
 if (browseBtn) {
