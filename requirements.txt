@@ -5,3 +5,4 @@ python-docx>=0.8.11
 Pillow>=10.0.0
 pytesseract>=0.3.10
 dashscope>=1.14.0
+gunicorn>=21.2.0
