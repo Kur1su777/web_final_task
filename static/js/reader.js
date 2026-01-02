@@ -21,6 +21,45 @@ let aiOpened = false;
 let compareActive = false;
 let compareDocId = '';
 
+const markdownRenderer = window.markdownit
+    ? window.markdownit({ html: false, linkify: true, breaks: true })
+    : null;
+
+function renderMarkdown(content) {
+    if (!markdownRenderer) {
+        return escapeHtml(content || '').replace(/\n/g, '<br>');
+    }
+    return markdownRenderer.render(content || '');
+}
+
+function escapeHtml(input) {
+    return String(input || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function extractMermaidCode(content) {
+    const text = (content || '').trim();
+    if (!text) return null;
+    const fenced = text.match(/```mermaid\s*([\s\S]*?)```/i);
+    if (fenced && fenced[1]) return fenced[1].trim();
+    if (text.startsWith('mindmap')) return text;
+    return null;
+}
+
+function renderMermaidIn(container) {
+    if (!container || !window.mermaid) return;
+    try {
+        window.mermaid.initialize({ startOnLoad: false, theme: 'default' });
+    } catch (_) {}
+    try {
+        window.mermaid.run({ nodes: [container] });
+    } catch (_) {}
+}
+
 function setAiState(open) {
     if (!readerLayout) return;
     aiOpened = open;
@@ -181,9 +220,23 @@ function setCompareAnalysisContent(type) {
         },
     };
     const current = map[type];
+    if (type === 'mindmap') {
+        const code = extractMermaidCode(current.content);
+        if (code) {
+            compareAnalysisPanel.innerHTML = `
+                <h4>${current.title}</h4>
+                <div class="mindmap-wrap">
+                    <div class="mermaid">${escapeHtml(code)}</div>
+                </div>
+            `;
+            const node = compareAnalysisPanel.querySelector('.mermaid');
+            renderMermaidIn(node);
+            return;
+        }
+    }
     compareAnalysisPanel.innerHTML = `
         <h4>${current.title}</h4>
-        <p>${current.content.replace(/\n/g, '<br>')}</p>
+        <div class="markdown-body">${renderMarkdown(current.content)}</div>
     `;
 }
 
@@ -248,9 +301,23 @@ function setAnalysisContent(type) {
         },
     };
     const current = map[type];
+    if (type === 'mindmap') {
+        const code = extractMermaidCode(current.content);
+        if (code) {
+            analysisPanel.innerHTML = `
+                <h4>${current.title}</h4>
+                <div class="mindmap-wrap">
+                    <div class="mermaid">${escapeHtml(code)}</div>
+                </div>
+            `;
+            const node = analysisPanel.querySelector('.mermaid');
+            renderMermaidIn(node);
+            return;
+        }
+    }
     analysisPanel.innerHTML = `
         <h4>${current.title}</h4>
-        <p>${current.content.replace(/\n/g, '<br>')}</p>
+        <div class="markdown-body">${renderMarkdown(current.content)}</div>
     `;
 }
 
@@ -333,7 +400,13 @@ function renderBubble(text, role = 'assistant', isLoading = false) {
     if (!qaChat) return;
     const bubble = document.createElement('div');
     bubble.className = `qa-bubble ${role}`;
-    bubble.innerHTML = isLoading ? '<span class="spinner"></span>' : text.replace(/\n/g, '<br>');
+    if (isLoading) {
+        bubble.innerHTML = '<span class="spinner"></span>';
+    } else if (role === 'assistant') {
+        bubble.innerHTML = `<div class="markdown-body">${renderMarkdown(text)}</div>`;
+    } else {
+        bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+    }
     qaChat.appendChild(bubble);
     qaChat.scrollTop = qaChat.scrollHeight;
 }

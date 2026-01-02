@@ -109,14 +109,40 @@ class DocumentAIClient:
         user_prompt = (
             f"文件名: {filename}\n"
             f"文档分类提示: {category_hint}\n"
-            f"已识别内容(截断):\n{ocr_text[:2000]}\n"
+            f"已识别内容(截断):\n{ocr_text[:3200]}\n"
             f"文档摘要(如有):\n{summary_hint}\n"
-            "请输出精读要点：背景/问题、核心论点、关键证据、结论或启发，各点独立成句，4-6 行。"
+            "请输出精读要点：背景/问题、核心论点、关键证据、结论或启发，各点独立成句，8-12 行，允许适当扩展说明。"
         )
         return self._call_models(system_prompt, user_prompt, prefer_finance=True)
 
     def explain_document(self, category: str, summary: str, ocr_text: str, filename: str) -> str:
         return self.deep_read_document(category, summary, ocr_text, filename)
+
+    @staticmethod
+    def _chunk_text(text: str, *, max_chars: int = 1800, max_chunks: int = 6) -> list[str]:
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        if not lines:
+            return [text[:max_chars]] if text else [""]
+
+        chunks: list[str] = []
+        current: list[str] = []
+        current_len = 0
+
+        for line in lines:
+            if current and current_len + len(line) + 1 > max_chars:
+                chunks.append("\n".join(current))
+                if len(chunks) >= max_chunks:
+                    return chunks
+                current = [line]
+                current_len = len(line)
+                continue
+
+            current.append(line)
+            current_len += len(line) + 1
+
+        if current and len(chunks) < max_chunks:
+            chunks.append("\n".join(current))
+        return chunks
 
     def translate_document(self, summary: str, ocr_text: str, filename: str) -> str:
         summary_hint = ""
@@ -124,16 +150,26 @@ class DocumentAIClient:
             summary_hint = summary
 
         system_prompt = (
-            "你是一名专业翻译助手，需要将内容翻译为英文。"
-            "如果原文已经是英文，请翻译为中文。"
+            "你是一名专业翻译助手。"
+            "如果原文主要是中文，请翻译为英文；如果原文主要是英文，请翻译为中文。"
+            "不要省略，不要用“...”代替内容；只输出译文正文。"
         )
-        user_prompt = (
-            f"文件名: {filename}\n"
-            f"文档摘要(如有):\n{summary_hint}\n"
-            f"内容摘录(截断):\n{ocr_text[:2500]}\n"
-            "请输出通顺的翻译结果，保留原意，避免分点编号。"
-        )
-        return self._call_models(system_prompt, user_prompt, prefer_finance=False)
+
+        source_text = (ocr_text or "")[:12000]
+        chunks = self._chunk_text(source_text, max_chars=1800, max_chunks=6)
+        translated_parts: list[str] = []
+        total = len(chunks)
+
+        for idx, chunk in enumerate(chunks, start=1):
+            user_prompt = (
+                f"文件名: {filename}\n"
+                f"文档摘要(如有):\n{summary_hint}\n"
+                f"待翻译内容（第 {idx}/{total} 段）：\n{chunk}\n"
+                "请逐句翻译，保证术语一致、语义完整。"
+            )
+            translated_parts.append(self._call_models(system_prompt, user_prompt, prefer_finance=False).strip())
+
+        return "\n\n".join([part for part in translated_parts if part])
 
     def mindmap_document(self, summary: str, ocr_text: str, filename: str) -> str:
         summary_hint = ""
@@ -141,18 +177,24 @@ class DocumentAIClient:
             summary_hint = summary
 
         system_prompt = (
-            "你是一名思维导图整理助手，需要用文本形式输出层级结构。"
-            "只输出文本导图，不要 JSON。"
+            "你是一名思维导图整理助手。"
+            "请输出 Mermaid 思维导图（mindmap）代码，用于网页渲染成图。"
+            "只输出 ```mermaid 代码块，不要额外解释。"
         )
         user_prompt = (
             f"文件名: {filename}\n"
             f"文档摘要(如有):\n{summary_hint}\n"
-            f"内容摘录(截断):\n{ocr_text[:2000]}\n"
-            "请输出思维导图，使用如下格式：\n"
-            "- 主题\n"
-            "  - 分支一\n"
-            "    - 子点\n"
-            "  - 分支二"
+            f"内容摘录(截断):\n{ocr_text[:3200]}\n"
+            "请抽取一个中心主题，并分出 4-7 个一级分支，每个分支再给出 2-4 个二级要点。\n"
+            "输出示例（注意是 mermaid mindmap 语法）：\n"
+            "```mermaid\n"
+            "mindmap\n"
+            "  root((中心主题))\n"
+            "    分支一\n"
+            "      要点\n"
+            "    分支二\n"
+            "      要点\n"
+            "```"
         )
         return self._call_models(system_prompt, user_prompt, prefer_finance=False)
 
@@ -182,6 +224,7 @@ class DocumentAIClient:
             mindmap = f"导图失败: {mindmap}"
 
         return {
+            "_version": "2",
             "category": category,
             "summary": summary,
             "deep_read": deep_read,

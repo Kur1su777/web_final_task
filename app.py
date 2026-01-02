@@ -19,6 +19,7 @@ from flask import (
 from services.ai_service import DocumentAIClient
 from services.document_service import (
     save_uploaded_file,
+    download_file_from_url,
     load_documents,
     store_documents,
     extract_preview_text,
@@ -137,7 +138,12 @@ def api_document_analysis(doc_id):
 
     analysis_payload = document.get("analysis") or {}
     required_keys = {"summary", "deep_read", "translation", "mindmap"}
-    needs_refresh = not analysis_payload or not required_keys.issubset(analysis_payload.keys())
+    current_version = str(analysis_payload.get("_version") or "").strip()
+    needs_refresh = (
+        not analysis_payload
+        or not required_keys.issubset(analysis_payload.keys())
+        or current_version != "2"
+    )
 
     if needs_refresh:
         file_path = Path(document["filepath"])
@@ -200,6 +206,48 @@ def upload():
         file=file,
         upload_dir=app.config["UPLOAD_FOLDER"],
     )
+
+    doc_entry = {
+        "id": uuid.uuid4().hex,
+        "filename": saved_file.name,
+        "original_name": original_name,
+        "filepath": str(saved_file),
+        "size": saved_file.stat().st_size,
+        "uploaded_at": datetime.datetime.utcnow().isoformat(),
+        "analysis": None,
+        "classification": "",
+    }
+
+    documents = load_documents(DATA_FILE)
+    documents.append(doc_entry)
+    store_documents(DATA_FILE, documents)
+
+    return jsonify(
+        {
+            "success": True,
+            "document": doc_entry,
+            "redirect": url_for("reader", doc_id=doc_entry["id"]),
+        }
+    )
+
+
+@app.route("/api/import_url", methods=["POST"])
+def api_import_url():
+    payload = request.get_json() or {}
+    url = (payload.get("url") or "").strip()
+    if not url:
+        return jsonify({"success": False, "error": "请输入有效的链接"}), 400
+
+    try:
+        saved_file, original_name = download_file_from_url(
+            url=url,
+            upload_dir=app.config["UPLOAD_FOLDER"],
+            max_bytes=app.config["MAX_CONTENT_LENGTH"],
+        )
+    except ValueError as exc:
+        return jsonify({"success": False, "error": str(exc)}), 400
+    except Exception:  # pylint: disable=broad-except
+        return jsonify({"success": False, "error": "下载失败，请稍后重试"}), 500
 
     doc_entry = {
         "id": uuid.uuid4().hex,

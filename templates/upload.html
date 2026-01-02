@@ -99,11 +99,11 @@
                 <span>文档链接</span>
                 <input type="url" id="link-input" placeholder="https://example.com/document.pdf">
             </label>
-            <p class="muted small">当前版本暂不支持直接抓取，将在后续版本开放。</p>
+            <p class="muted small">支持 http/https 链接抓取（最大 64MB）。为安全起见，内网/本机地址将被拦截。</p>
         </div>
         <div class="modal-footer">
             <button class="button secondary" data-close>稍后上传</button>
-            <button class="button disabled" disabled>即将上线</button>
+            <button class="button" id="import-link-btn">开始导入</button>
         </div>
     </div>
 </div>

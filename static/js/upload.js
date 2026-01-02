@@ -5,6 +5,8 @@ const recentList = document.getElementById('recent-list');
 const linkModal = document.getElementById('link-modal');
 const clearHistoryBtn = document.getElementById('clear-history');
 const linkTriggers = [document.getElementById('paste-link'), document.getElementById('open-history')];
+const linkInput = document.getElementById('link-input');
+const importLinkBtn = document.getElementById('import-link-btn');
 
 function openModal(modal) {
     modal.classList.add('active');
@@ -167,4 +169,49 @@ function showToast(message) {
         toast.classList.remove('visible');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+function setImportButtonLoading(loading) {
+    if (!importLinkBtn) return;
+    importLinkBtn.disabled = loading;
+    importLinkBtn.classList.toggle('disabled', loading);
+    importLinkBtn.textContent = loading ? '正在导入...' : '开始导入';
+}
+
+function importFromLink() {
+    const url = (linkInput && linkInput.value || '').trim();
+    if (!url) {
+        showToast('请输入有效的链接');
+        return;
+    }
+
+    setImportButtonLoading(true);
+    fetch('/api/import_url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+                return;
+            }
+            showToast(data.error || '导入失败，请重试');
+        })
+        .catch(() => showToast('导入失败，请检查网络后重试'))
+        .finally(() => setImportButtonLoading(false));
+}
+
+if (importLinkBtn) {
+    importLinkBtn.addEventListener('click', importFromLink);
+}
+
+if (linkInput) {
+    linkInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            importFromLink();
+        }
+    });
 }

@@ -121,5 +121,7 @@
 <script>
     window.__DOC_ID__ = "{{ document.id }}";
 </script>
+<script src="{{ url_for('static', filename='vendor/mermaid.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/markdown-it.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/reader.js') }}"></script>
 {% endblock %}

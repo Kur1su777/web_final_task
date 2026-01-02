@@ -392,6 +392,48 @@
     font-size: 16px;
 }
 
+.mindmap-wrap {
+    width: 100%;
+    overflow: auto;
+    padding: 8px 0;
+}
+
+.mindmap-wrap .mermaid {
+    width: 100%;
+}
+
+.markdown-body {
+    line-height: 1.75;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.markdown-body p {
+    margin: 0 0 12px;
+}
+
+.markdown-body strong {
+    font-weight: 600;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+    margin: 12px 0 8px;
+    font-weight: 600;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    margin: 0 0 12px 20px;
+    padding: 0;
+}
+
+.markdown-body li {
+    margin-bottom: 6px;
+}
+
 .loading {
     display: flex;
     align-items: center;
