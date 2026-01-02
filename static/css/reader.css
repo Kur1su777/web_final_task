@@ -221,6 +221,17 @@
     padding: 0 6px;
 }
 
+.compare-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.compare-actions .button {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
 .compare-title {
     font-weight: 600;
     font-size: 15px;

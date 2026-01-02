@@ -14,6 +14,8 @@ const comparePane = document.getElementById('compare-pane');
 const compareSelect = document.getElementById('compare-select');
 const compareCanvas = document.getElementById('compare-canvas');
 const compareAnalysisPanel = document.getElementById('compare-analysis-panel');
+const compareUploadBtn = document.getElementById('compare-upload-btn');
+const compareUploadInput = document.getElementById('compare-upload-input');
 
 let analysisData = null;
 let compareAnalysisData = null;
@@ -56,8 +58,47 @@ function renderMermaidIn(container) {
         window.mermaid.initialize({ startOnLoad: false, theme: 'default' });
     } catch (_) {}
     try {
-        window.mermaid.run({ nodes: [container] });
+        const result = window.mermaid.run({ nodes: [container] });
+        if (result && typeof result.then === 'function') {
+            result.catch(() => {});
+        }
     } catch (_) {}
+}
+
+function renderMindmap(panel, title, content) {
+    if (!panel) return;
+    const code = extractMermaidCode(content);
+    if (code) {
+        panel.innerHTML = `
+            <h4>${title}</h4>
+            <div class="mindmap-wrap">
+                <div class="mermaid">${escapeHtml(code)}</div>
+            </div>
+        `;
+        const node = panel.querySelector('.mermaid');
+        try {
+            const result = window.mermaid ? window.mermaid.run({ nodes: [node] }) : null;
+            if (result && typeof result.then === 'function') {
+                result.catch(() => {
+                    panel.innerHTML = `
+                        <h4>${title}</h4>
+                        <div class="markdown-body">${renderMarkdown(content)}</div>
+                    `;
+                });
+            }
+            return;
+        } catch (_) {
+            panel.innerHTML = `
+                <h4>${title}</h4>
+                <div class="markdown-body">${renderMarkdown(content)}</div>
+            `;
+            return;
+        }
+    }
+    panel.innerHTML = `
+        <h4>${title}</h4>
+        <div class="markdown-body">${renderMarkdown(content)}</div>
+    `;
 }
 
 function setAiState(open) {
@@ -181,6 +222,64 @@ function renderCompareDocument(doc) {
     compareCanvas.innerHTML = '<div class="compare-text">该文件暂不支持对比预览，请下载查看。</div>';
 }
 
+function setCompareUploadLoading(loading) {
+    if (!compareUploadBtn) return;
+    compareUploadBtn.disabled = loading;
+    compareUploadBtn.classList.toggle('disabled', loading);
+    compareUploadBtn.innerHTML = loading
+        ? '<i class="fa-solid fa-spinner fa-spin"></i> 上传中...'
+        : '<i class="fa-regular fa-folder-open"></i> 上传对比';
+}
+
+function addCompareOption(doc) {
+    if (!compareSelect || !doc) return;
+    const exists = Array.from(compareSelect.options).some(option => option.value === doc.id);
+    if (!exists) {
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = doc.original_name || doc.filename || '对比文档';
+        compareSelect.appendChild(option);
+    }
+    compareSelect.value = doc.id;
+    compareSelect.dispatchEvent(new Event('change'));
+}
+
+function uploadCompareFile(file) {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    setCompareUploadLoading(true);
+    if (compareCanvas) {
+        compareCanvas.innerHTML = '<div class="loading"><span class="spinner"></span>正在上传对比文档...</div>';
+    }
+
+    fetch('/upload', {
+        method: 'POST',
+        body: formData,
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.document) {
+                addCompareOption(data.document);
+                return;
+            }
+            if (compareCanvas) {
+                compareCanvas.innerHTML = '<div class="compare-text">上传失败，请重试。</div>';
+            }
+        })
+        .catch(() => {
+            if (compareCanvas) {
+                compareCanvas.innerHTML = '<div class="compare-text">上传失败，请检查网络。</div>';
+            }
+        })
+        .finally(() => {
+            setCompareUploadLoading(false);
+            if (compareUploadInput) {
+                compareUploadInput.value = '';
+            }
+        });
+}
+
 function setCompareTabActive(type) {
     compareTabButtons.forEach(button => {
         button.classList.toggle('active', button.dataset.tab === type);
@@ -221,18 +320,8 @@ function setCompareAnalysisContent(type) {
     };
     const current = map[type];
     if (type === 'mindmap') {
-        const code = extractMermaidCode(current.content);
-        if (code) {
-            compareAnalysisPanel.innerHTML = `
-                <h4>${current.title}</h4>
-                <div class="mindmap-wrap">
-                    <div class="mermaid">${escapeHtml(code)}</div>
-                </div>
-            `;
-            const node = compareAnalysisPanel.querySelector('.mermaid');
-            renderMermaidIn(node);
-            return;
-        }
+        renderMindmap(compareAnalysisPanel, current.title, current.content);
+        return;
     }
     compareAnalysisPanel.innerHTML = `
         <h4>${current.title}</h4>
@@ -280,6 +369,15 @@ if (compareSelect) {
     });
 }
 
+if (compareUploadBtn && compareUploadInput) {
+    compareUploadBtn.addEventListener('click', () => compareUploadInput.click());
+    compareUploadInput.addEventListener('change', () => {
+        if (compareUploadInput.files && compareUploadInput.files.length) {
+            uploadCompareFile(compareUploadInput.files[0]);
+        }
+    });
+}
+
 function setAnalysisContent(type) {
     if (!analysisData) return;
     const map = {
@@ -302,18 +400,8 @@ function setAnalysisContent(type) {
     };
     const current = map[type];
     if (type === 'mindmap') {
-        const code = extractMermaidCode(current.content);
-        if (code) {
-            analysisPanel.innerHTML = `
-                <h4>${current.title}</h4>
-                <div class="mindmap-wrap">
-                    <div class="mermaid">${escapeHtml(code)}</div>
-                </div>
-            `;
-            const node = analysisPanel.querySelector('.mermaid');
-            renderMermaidIn(node);
-            return;
-        }
+        renderMindmap(analysisPanel, current.title, current.content);
+        return;
     }
     analysisPanel.innerHTML = `
         <h4>${current.title}</h4>

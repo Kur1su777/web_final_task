@@ -75,9 +75,15 @@
     <section class="reader-pane compare-pane" id="compare-pane">
         <div class="compare-header">
             <div class="compare-title">对比文档</div>
-            <select id="compare-select">
-                <option value="">选择对比文档</option>
-            </select>
+            <div class="compare-actions">
+                <button class="button secondary" id="compare-upload-btn" type="button">
+                    <i class="fa-regular fa-folder-open"></i> 上传对比
+                </button>
+                <input type="file" id="compare-upload-input" hidden>
+                <select id="compare-select">
+                    <option value="">选择对比文档</option>
+                </select>
+            </div>
         </div>
         <div class="compare-canvas" id="compare-canvas">
             <div class="empty-state">
